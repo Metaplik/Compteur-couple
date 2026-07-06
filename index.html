@@ -314,6 +314,7 @@
   </div>
 
   <div class="changer-lien" id="changer-lien">Ce n'est pas moi ? Réinitialiser</div>
+  <div class="changer-lien" id="reset-scores" style="right:auto; left:14px;">Remettre le bocal à zéro</div>
 
 <script>
   const DB_URL = "https://compteur-couple-default-rtdb.europe-west1.firebasedatabase.app";
@@ -337,6 +338,21 @@
       localStorage.removeItem('compteur_nom');
       localStorage.removeItem('compteur_cote');
       location.reload();
+    };
+
+    document.getElementById('reset-scores').onclick = async () => {
+      const sur = confirm("Remettre les deux scores à zéro ? Cette action est irréversible.");
+      if (!sur) return;
+      try {
+        await fetch(`${DB_URL}/scores.json`, {
+          method: 'PUT',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rose: 0, bleu: 0 })
+        });
+        loadScores();
+      } catch (e) {
+        alert("La remise à zéro a échoué, vérifie ta connexion.");
+      }
     };
   };
 
