@@ -1,83 +1,386 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Compteur Couple</title>
-    <style>
-        body { font-family: sans-serif; display: flex; flex-direction: column; align-items: center; padding: 20px; background-color: #f8f9fa; }
-        .container { display: flex; justify-content: center; gap: 40px; margin-top: 30px; }
-        .box { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); text-align: center; }
-        .counter { font-size: 3rem; display: block; margin: 15px 0; font-weight: bold; }
-        button { border: none; padding: 15px 20px; border-radius: 10px; cursor: pointer; color: white; font-weight: bold; width: 100%; }
-        .rose { background-color: #ff85a2; }
-        .bleu { background-color: #5dade2; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Notre Bocal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --cream:#FFF6EA;
+    --cream-dark:#F5E9D6;
+    --glass:rgba(255,255,255,0.30);
+    --glass-edge:rgba(255,255,255,0.75);
+    --rose:#FF6F91;
+    --rose-dark:#E14F73;
+    --bleu:#4FB6E8;
+    --bleu-dark:#2E8FC0;
+    --gold:#F2C14E;
+    --gold-dark:#C9922E;
+    --plum:#4A2E3D;
+    --plum-soft:#7A5C6E;
+  }
+
+  *{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+
+  body{
+    margin:0;
+    min-height:100vh;
+    background:
+      radial-gradient(circle at 20% 10%, #FFFDF8 0%, transparent 45%),
+      radial-gradient(circle at 85% 85%, #FFEFDC 0%, transparent 50%),
+      var(--cream);
+    font-family:'Quicksand', sans-serif;
+    color:var(--plum);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:28px 16px 60px;
+    overflow-x:hidden;
+  }
+
+  h1{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:1.7rem;
+    margin:0 0 4px;
+    letter-spacing:0.5px;
+    text-align:center;
+  }
+  .sous-titre{
+    font-size:0.95rem;
+    color:var(--plum-soft);
+    margin-bottom:28px;
+    text-align:center;
+  }
+
+  .scene{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:18px;
+    width:100%;
+    max-width:520px;
+  }
+
+  .cote{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:10px;
+  }
+
+  .nom{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:1rem;
+    padding:6px 16px;
+    border-radius:999px;
+    background:var(--glass-edge);
+    box-shadow:0 2px 6px rgba(74,46,61,0.08);
+  }
+  .cote.rose .nom{ color:var(--rose-dark); }
+  .cote.bleu .nom{ color:var(--bleu-dark); }
+
+  .score{
+    font-family:'Fredoka', sans-serif;
+    font-weight:700;
+    font-size:2.6rem;
+    line-height:1;
+  }
+  .cote.rose .score{ color:var(--rose-dark); }
+  .cote.bleu .score{ color:var(--bleu-dark); }
+
+  button{
+    font-family:'Fredoka', sans-serif;
+    font-weight:600;
+    font-size:1.4rem;
+    border:none;
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    color:white;
+    cursor:pointer;
+    box-shadow:0 6px 0 rgba(0,0,0,0.15), 0 8px 14px rgba(0,0,0,0.12);
+    transition:transform .08s ease, box-shadow .08s ease;
+  }
+  button:active{
+    transform:translateY(5px);
+    box-shadow:0 1px 0 rgba(0,0,0,0.15), 0 2px 6px rgba(0,0,0,0.12);
+  }
+  .btn-rose{ background:linear-gradient(180deg, var(--rose), var(--rose-dark)); }
+  .btn-bleu{ background:linear-gradient(180deg, var(--bleu), var(--bleu-dark)); }
+
+  /* ---- Le bocal ---- */
+  .bocal-wrap{
+    position:relative;
+    width:150px;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+  }
+
+  .couvercle{
+    width:96px;
+    height:20px;
+    border-radius:10px 10px 3px 3px;
+    background:linear-gradient(180deg, var(--gold), var(--gold-dark));
+    box-shadow:0 3px 5px rgba(0,0,0,0.15), inset 0 2px 2px rgba(255,255,255,0.5);
+    position:relative;
+    z-index:3;
+  }
+  .couvercle::after{
+    content:"";
+    position:absolute;
+    top:-6px; left:50%;
+    transform:translateX(-50%);
+    width:34px; height:10px;
+    border-radius:6px;
+    background:linear-gradient(180deg, var(--gold), var(--gold-dark));
+  }
+  .col{
+    width:82px;
+    height:12px;
+    background:rgba(255,255,255,0.28);
+    border-left:2px solid var(--glass-edge);
+    border-right:2px solid var(--glass-edge);
+  }
+
+  .bocal{
+    width:150px;
+    height:230px;
+    border-radius:20px 20px 46px 46px;
+    background:
+      linear-gradient(100deg, rgba(255,255,255,0.55) 0%, rgba(255,255,255,0.1) 25%, rgba(255,255,255,0.05) 60%, rgba(255,255,255,0.35) 100%),
+      var(--glass);
+    border:3px solid var(--glass-edge);
+    box-shadow:
+      inset -8px 0 16px rgba(255,255,255,0.4),
+      inset 8px 0 20px rgba(74,46,61,0.06),
+      0 10px 24px rgba(74,46,61,0.15);
+    position:relative;
+    overflow:hidden;
+    transition:transform .12s ease;
+  }
+  .bocal.rebond{ transform:scale(1.035); }
+
+  .brillance{
+    position:absolute;
+    top:10px; left:14px;
+    width:18px; height:70%;
+    border-radius:50%;
+    background:linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+    filter:blur(1px);
+    z-index:2;
+    pointer-events:none;
+  }
+
+  .pieces-couche{
+    position:absolute;
+    inset:0;
+  }
+
+  .piece{
+    position:absolute;
+    width:20px;
+    height:20px;
+    border-radius:50%;
+    box-shadow:0 1px 2px rgba(0,0,0,0.25), inset 0 1px 2px rgba(255,255,255,0.6);
+    animation:tomber .38s cubic-bezier(.34,1.4,.64,1) both;
+  }
+  .piece.rose{ background:radial-gradient(circle at 35% 30%, #FFC1D2, var(--rose) 70%); }
+  .piece.bleu{ background:radial-gradient(circle at 35% 30%, #C7ECFB, var(--bleu) 70%); }
+
+  @keyframes tomber{
+    from{ transform:translateY(-160px) rotate(-30deg); opacity:0; }
+    to{ transform:translateY(0) rotate(0); opacity:1; }
+  }
+
+  .total{
+    margin-top:26px;
+    font-size:0.9rem;
+    color:var(--plum-soft);
+    text-align:center;
+  }
+
+  @media (max-width:400px){
+    .scene{ gap:8px; }
+    .bocal-wrap{ width:118px; }
+    .bocal{ width:118px; height:190px; }
+    .couvercle{ width:76px; }
+    .col{ width:64px; }
+    button{ width:54px; height:54px; font-size:1.2rem; }
+    .score{ font-size:2rem; }
+  }
+</style>
 </head>
 <body>
 
-    <h1>Compteur Partagé</h1>
+  <h1>Notre Bocal</h1>
+  <div class="sous-titre">Chaque bouton ajoute une pièce de sa couleur</div>
 
-    <div class="container">
-        <div class="box">
-            <h2 id="name-rose">FEMME</h2>
-            <span id="score-rose" class="counter">0</span>
-            <button id="btn-rose" class="rose" onclick="updateScore('rose')">+1</button>
-        </div>
-
-        <div class="box">
-            <h2 id="name-bleu">HOMME</h2>
-            <span id="score-bleu" class="counter">0</span>
-            <button id="btn-bleu" class="bleu" onclick="updateScore('bleu')">+1</button>
-        </div>
+  <div class="scene">
+    <div class="cote rose">
+      <div class="nom" id="name-rose">FEMME</div>
+      <div class="score" id="score-rose">0</div>
+      <button class="btn-rose" onclick="updateScore('rose')" aria-label="Ajouter un point côté femme">+1</button>
     </div>
 
-    <script>
-        const GIST_ID = "ee9ff3d32a7167eda2fceeef62dd76fb";
-        const TOKEN = "ghp_dz2nwQw2fYF8kN0Cyhs2hIu1g8Ftlw1q3Php";
+    <div class="bocal-wrap">
+      <div class="couvercle"></div>
+      <div class="col"></div>
+      <div class="bocal" id="bocal">
+        <div class="brillance"></div>
+        <div class="pieces-couche" id="pieces-couche"></div>
+      </div>
+    </div>
 
-        window.onload = () => {
-            const nom = prompt("Entrez votre prénom :");
-            const sexe = prompt("Êtes-vous un HOMME ou une FEMME ?").toUpperCase();
+    <div class="cote bleu">
+      <div class="nom" id="name-bleu">HOMME</div>
+      <div class="score" id="score-bleu">0</div>
+      <button class="btn-bleu" onclick="updateScore('bleu')" aria-label="Ajouter un point côté homme">+1</button>
+    </div>
+  </div>
 
-            if (sexe === "FEMME") {
-                document.getElementById('name-rose').innerText = nom;
-            } else if (sexe === "HOMME") {
-                document.getElementById('name-bleu').innerText = nom;
-            }
-            loadScores();
-        };
+  <div class="total" id="total">Bocal en cours de remplissage…</div>
 
-        async function loadScores() {
-            // Lecture directe via l'URL brute pour éviter les erreurs API
-            const response = await fetch(`https://gist.githubusercontent.com/Metaplik/${GIST_ID}/raw/scores.json?cache_bust=${new Date().getTime()}`);
-            const scores = await response.json();
-            document.getElementById('score-rose').innerText = scores.rose;
-            document.getElementById('score-bleu').innerText = scores.bleu;
-        }
+<script>
+  const DB_URL = "https://compteur-couple-default-rtdb.europe-west1.firebasedatabase.app";
+  const MAX_PIECES_AFFICHEES = 90; // au-delà, le bocal garde son plus bel état de "plein"
 
-        async function updateScore(user) {
-            // 1. Lire les scores actuels
-            const getResponse = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                headers: { 'Authorization': `token ${TOKEN}` }
-            });
-            const data = await getResponse.json();
-            let scores = JSON.parse(data.files['scores.json'].content);
-            
-            // 2. Modifier le score
-            scores[user]++;
+  let scores = { rose: 0, bleu: 0 };
+  let audioCtx = null;
 
-            // 3. Envoyer la mise à jour
-            await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-                method: 'PATCH',
-                headers: { 'Authorization': `token ${TOKEN}`, 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    files: { 'scores.json': { content: JSON.stringify(scores) } }
-                })
-            });
-            loadScores();
-        }
+  window.onload = () => {
+    const nom = prompt("Entrez votre prénom :");
+    const sexe = (prompt("Êtes-vous un HOMME ou une FEMME ?") || "").toUpperCase();
 
-        setInterval(loadScores, 5000);
-    </script>
+    if (sexe === "FEMME") {
+      document.getElementById('name-rose').innerText = nom;
+    } else if (sexe === "HOMME") {
+      document.getElementById('name-bleu').innerText = nom;
+    }
+    loadScores();
+  };
+
+  async function loadScores() {
+    try {
+      const response = await fetch(`${DB_URL}/scores.json`);
+      const data = await response.json();
+      scores.rose = (data && data.rose) || 0;
+      scores.bleu = (data && data.bleu) || 0;
+      render();
+    } catch (e) {
+      console.error("Erreur de chargement :", e);
+    }
+  }
+
+  async function updateScore(user) {
+    scores[user] = (scores[user] || 0) + 1;
+
+    jouerSon(user);
+    render(user);
+
+    try {
+      await fetch(`${DB_URL}/scores/${user}.json`, {
+        method: 'PUT',
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(scores[user])
+      });
+    } catch (e) {
+      console.error("Erreur d'enregistrement :", e);
+    }
+
+    loadScores();
+  }
+
+  function render(coteAnime) {
+    document.getElementById('score-rose').innerText = scores.rose;
+    document.getElementById('score-bleu').innerText = scores.bleu;
+
+    const total = scores.rose + scores.bleu;
+    document.getElementById('total').innerText =
+      total === 0 ? "Le bocal n'attend que vous…" : `${total} pièce${total > 1 ? 's' : ''} dans le bocal`;
+
+    dessinerPieces();
+
+    if (coteAnime) {
+      const bocal = document.getElementById('bocal');
+      bocal.classList.add('rebond');
+      setTimeout(() => bocal.classList.remove('rebond'), 140);
+    }
+  }
+
+  function dessinerPieces() {
+    const couche = document.getElementById('pieces-couche');
+    couche.innerHTML = '';
+
+    const total = scores.rose + scores.bleu;
+    if (total === 0) return;
+
+    const nbAffiche = Math.min(total, MAX_PIECES_AFFICHEES);
+    const depart = total - nbAffiche;
+
+    // Répartition proportionnelle rose/bleu façon "tramage" pour un mélange homogène
+    let roseFaites = Math.round((depart) * (scores.rose / total));
+    let bleuFaites = depart - roseFaites;
+
+    const parRangee = 6;
+    const largeurZone = 110;
+    const decalageX = 10;
+
+    for (let i = 0; i < nbAffiche; i++) {
+      const indexGlobal = depart + i;
+      const ratioRoseCible = scores.rose / total;
+      const ratioRoseActuel = (roseFaites + bleuFaites) === 0 ? 0 : roseFaites / (roseFaites + bleuFaites);
+      let couleur;
+      if (roseFaites < scores.rose && (ratioRoseActuel <= ratioRoseCible || bleuFaites >= scores.bleu)) {
+        couleur = 'rose';
+        roseFaites++;
+      } else {
+        couleur = 'bleu';
+        bleuFaites++;
+      }
+
+      const rangee = Math.floor(i / parRangee);
+      const col = i % parRangee;
+      const decalageRangee = (rangee % 2) * 12;
+
+      const piece = document.createElement('div');
+      piece.className = 'piece ' + couleur;
+      piece.style.left = (decalageX + col * 18 + decalageRangee) + 'px';
+      piece.style.bottom = (4 + rangee * 15) + 'px';
+      piece.style.animationDelay = (i === nbAffiche - 1) ? '0s' : '-1s';
+      couche.appendChild(piece);
+    }
+  }
+
+  function jouerSon(user) {
+    try {
+      if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const base = user === 'rose' ? 880 : 660;
+
+      [0, 0.07].forEach((delai, i) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.value = base + i * 220;
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime + delai);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + delai + 0.18);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(audioCtx.currentTime + delai);
+        osc.stop(audioCtx.currentTime + delai + 0.2);
+      });
+    } catch (e) {
+      // Son non disponible, on continue sans bloquer
+    }
+  }
+
+  setInterval(loadScores, 5000);
+</script>
 </body>
 </html>
