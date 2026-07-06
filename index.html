@@ -274,17 +274,20 @@
 
   <div class="accueil" id="accueil">
     <h2>Avant de commencer</h2>
+    <input type="text" id="champ-couple" placeholder="Nom de votre couple" maxlength="24">
     <input type="text" id="champ-nom" placeholder="Ton prénom" maxlength="20">
     <div class="choix-cote">
       <button class="btn-rose" id="choix-rose" disabled>Côté Femme 🌸</button>
       <button class="btn-bleu" id="choix-bleu" disabled>Côté Homme 💧</button>
     </div>
+    <div id="erreur-accueil" style="color:var(--rose-dark); font-size:0.85rem; max-width:260px; display:none;"></div>
+    <div style="font-size:0.75rem; color:var(--plum-soft); max-width:260px;">La première personne choisit un nom de couple, l'autre retape exactement le même pour se lier.</div>
   </div>
 
   <div class="cache" id="contenu-principal">
 
   <h1>Notre Bocal</h1>
-  <div class="sous-titre">Chaque bouton ajoute une pièce de sa couleur</div>
+  <div class="sous-titre" id="sous-titre">Chaque bouton ajoute une pièce de sa couleur</div>
 
   <div class="scene">
     <div class="cote rose">
@@ -322,19 +325,28 @@
 
   let scores = { rose: 0, bleu: 0 };
   let audioCtx = null;
-  let monCote = null; // 'rose' ou 'bleu' selon la réponse au prompt
+  let monCote = null;
+  let coupleCle = null;
+
+  function cleCouple(texte) {
+    return texte.trim().toLowerCase()
+      .replace(/[.#$\[\]\/]/g, '')
+      .replace(/\s+/g, '-');
+  }
 
   window.onload = () => {
+    const coupleEnregistre = localStorage.getItem('compteur_couple');
     const nomEnregistre = localStorage.getItem('compteur_nom');
     const coteEnregistre = localStorage.getItem('compteur_cote');
 
-    if (nomEnregistre && coteEnregistre) {
-      demarrer(nomEnregistre, coteEnregistre);
+    if (coupleEnregistre && nomEnregistre && coteEnregistre) {
+      demarrer(nomEnregistre, coteEnregistre, coupleEnregistre);
     } else {
       initAccueil();
     }
 
     document.getElementById('changer-lien').onclick = () => {
+      localStorage.removeItem('compteur_couple');
       localStorage.removeItem('compteur_nom');
       localStorage.removeItem('compteur_cote');
       location.reload();
@@ -344,7 +356,7 @@
       const sur = confirm("Remettre les deux scores à zéro ? Cette action est irréversible.");
       if (!sur) return;
       try {
-        await fetch(`${DB_URL}/scores.json`, {
+        await fetch(`${DB_URL}/couples/${coupleCle}/scores.json`, {
           method: 'PUT',
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ rose: 0, bleu: 0 })
@@ -357,42 +369,88 @@
   };
 
   function initAccueil() {
+    const champCouple = document.getElementById('champ-couple');
     const champNom = document.getElementById('champ-nom');
     const btnChoixRose = document.getElementById('choix-rose');
     const btnChoixBleu = document.getElementById('choix-bleu');
+    const erreur = document.getElementById('erreur-accueil');
 
     const majBoutons = () => {
-      const ok = champNom.value.trim().length > 0;
+      const ok = champCouple.value.trim().length > 0 && champNom.value.trim().length > 0;
       btnChoixRose.disabled = !ok;
       btnChoixBleu.disabled = !ok;
     };
+    champCouple.addEventListener('input', majBoutons);
     champNom.addEventListener('input', majBoutons);
 
-    btnChoixRose.onclick = () => valider('rose');
-    btnChoixBleu.onclick = () => valider('bleu');
+    btnChoixRose.onclick = () => rejoindre('rose');
+    btnChoixBleu.onclick = () => rejoindre('bleu');
 
-    function valider(cote) {
+    async function rejoindre(cote) {
+      const cle = cleCouple(champCouple.value);
       const nom = champNom.value.trim();
-      if (!nom) return;
-      localStorage.setItem('compteur_nom', nom);
-      localStorage.setItem('compteur_cote', cote);
-      demarrer(nom, cote);
+      if (!cle || !nom) return;
+
+      erreur.style.display = 'none';
+      btnChoixRose.disabled = true;
+      btnChoixBleu.disabled = true;
+
+      try {
+        const resp = await fetch(`${DB_URL}/couples/${cle}/noms/${cote}.json`);
+        const occupantExistant = await resp.json();
+
+        if (occupantExistant) {
+          erreur.textContent = "Ce côté est déjà pris pour ce nom de couple. Vérifiez l'orthographe avec votre partenaire, ou choisissez un autre nom.";
+          erreur.style.display = 'block';
+          majBoutons();
+          return;
+        }
+
+        await fetch(`${DB_URL}/couples/${cle}/noms/${cote}.json`, {
+          method: 'PUT',
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(nom)
+        });
+
+        localStorage.setItem('compteur_couple', cle);
+        localStorage.setItem('compteur_nom', nom);
+        localStorage.setItem('compteur_cote', cote);
+
+        demarrer(nom, cote, cle);
+      } catch (e) {
+        erreur.textContent = "Connexion impossible, réessayez.";
+        erreur.style.display = 'block';
+        majBoutons();
+      }
     }
   }
 
-  function demarrer(nom, cote) {
+  function demarrer(nom, cote, cle) {
     monCote = cote;
+    coupleCle = cle;
+
     if (cote === 'rose') {
       document.getElementById('name-rose').innerText = nom;
     } else {
       document.getElementById('name-bleu').innerText = nom;
     }
+    document.getElementById('sous-titre').innerText = `Couple : ${cle}`;
 
     document.getElementById('accueil').classList.add('cache');
     document.getElementById('contenu-principal').classList.remove('cache');
 
     verrouillerBoutons();
     loadScores();
+    chargerNomsExistants();
+  }
+
+  async function chargerNomsExistants() {
+    try {
+      const resp = await fetch(`${DB_URL}/couples/${coupleCle}/noms.json`);
+      const noms = await resp.json();
+      if (noms && noms.rose) document.getElementById('name-rose').innerText = noms.rose;
+      if (noms && noms.bleu) document.getElementById('name-bleu').innerText = noms.bleu;
+    } catch (e) {}
   }
 
   function verrouillerBoutons() {
@@ -412,7 +470,7 @@
 
   async function loadScores() {
     try {
-      const response = await fetch(`${DB_URL}/scores.json`);
+      const response = await fetch(`${DB_URL}/couples/${coupleCle}/scores.json`);
       const data = await response.json();
       scores.rose = (data && data.rose) || 0;
       scores.bleu = (data && data.bleu) || 0;
@@ -431,7 +489,7 @@
     render(user);
 
     try {
-      await fetch(`${DB_URL}/scores/${user}.json`, {
+      await fetch(`${DB_URL}/couples/${coupleCle}/scores/${user}.json`, {
         method: 'PUT',
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(scores[user])
@@ -526,7 +584,7 @@
     }
   }
 
-  setInterval(loadScores, 5000);
+  setInterval(() => { if (coupleCle) loadScores(); }, 5000);
 </script>
 </body>
 </html>
